@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+    db:
+        image: mysql:5.7
+        container_name: mysql
+        restart: always
+        volumes:
+            - ./init:/docker-entrypoint-initdb.d
+        environment:
+            MYSQL_ROOT_PASSWORD: nimda
+            MYSQL_DATABASE: example_db
+            MYSQL_USER: example_db_user
+            MYSQL_PASSWORD: example_db_pass
+        ports:
+            - "3306:3306"
+    pma:
+        depends_on:
+            - db
+        image: phpmyadmin/phpmyadmin
+        container_name: pma
+        restart: always
+        environment:
+            PMA_HOST: db
+            PMA_PORT: 3306
+        ports:
+            - "8081:80"
+    web:
+        depends_on:
+            - db
+        image: tomcat:9.0.10
+        container_name: tomcat
+        volumes:
+            - ./tomcat/webapps:/usr/local/tomcat/webapps
+        restart: always
+        ports:
+            - "8088:8080"
+        environment:
+            JDBC_URL: jdbc:mysql://db:3306/example_db?connectTimeout=0&amp;socketTimeout=0&amp;autoReconnect=true
+            JDBC_USER: example_db_user
+            JDBC_PASS: example_db_pass
